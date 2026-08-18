@@ -10,13 +10,13 @@ const scenarios = [
   "You are at the train station. How do I get to the factory?",
 ];
 
-type Score = { score?: number; feedback_vi?: string };
+type FeedbackItem = { feedback_vi?: string };
 type Result = {
-  route_accuracy?: Score & { status?: string };
-  grammar_vocabulary?: Score & { strengths?: string[]; corrections?: string[] };
-  pronunciation?: Score & { provisional?: boolean };
-  interactive_communication?: Score;
-  global_achievement?: Score;
+  route_accuracy?: FeedbackItem & { status?: string };
+  grammar_vocabulary?: FeedbackItem & { strengths?: string[]; corrections?: string[] };
+  pronunciation?: FeedbackItem & { provisional?: boolean };
+  interactive_communication?: FeedbackItem;
+  global_achievement?: FeedbackItem;
   corrected_answer?: string;
   model_answer?: string;
   next_step_vi?: string;
@@ -96,14 +96,6 @@ export default function DirectionsSpeaking() {
     }
   }
 
-  const cards = result ? [
-    ["Route accuracy", result.route_accuracy?.score],
-    ["Grammar & Vocabulary", result.grammar_vocabulary?.score],
-    ["Pronunciation*", result.pronunciation?.score],
-    ["Interactive Communication", result.interactive_communication?.score],
-    ["Global Achievement", result.global_achievement?.score],
-  ] : [];
-
   return (
     <main className="min-h-screen bg-white p-4 text-slate-900 sm:p-6">
       <section className="mx-auto max-w-5xl rounded-3xl border border-cyan-200 bg-cyan-50/60 p-5 shadow-sm">
@@ -123,10 +115,12 @@ export default function DirectionsSpeaking() {
         {transcript && <div className="mt-5 rounded-2xl bg-white p-4"><h2 className="font-bold">Your transcript</h2><p className="mt-1 text-slate-700">{transcript}</p></div>}
 
         {result && <div className="mt-5 space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{cards.map(([label, score]) => <div key={String(label)} className="rounded-2xl bg-white p-3 text-center shadow-sm"><div className="text-2xl font-extrabold text-cyan-700">{String(score ?? 0)}/5</div><div className="mt-1 text-xs font-semibold">{label}</div></div>)}</div>
           <div className="grid gap-4 md:grid-cols-2">
             <Feedback title="Route feedback" text={result.route_accuracy?.feedback_vi} />
+            <Feedback title="Grammar & Vocabulary" text={result.grammar_vocabulary?.feedback_vi} />
             <Feedback title="Pronunciation note" text={result.pronunciation?.feedback_vi} />
+            <Feedback title="Interactive Communication" text={result.interactive_communication?.feedback_vi} />
+            <Feedback title="Global Achievement" text={result.global_achievement?.feedback_vi} />
             <Feedback title="Corrected answer" text={result.corrected_answer} />
             <Feedback title="Model answer" text={result.model_answer} />
           </div>

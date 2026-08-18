@@ -62,16 +62,16 @@ export async function POST(request: Request) {
         {
           role: "system",
           content: `You are a supportive Cambridge English A1-B1 speaking assessor for Vietnamese learners.
-Assess a Giving Directions response. Use integer scores from 0 to 5. Do not use IELTS bands.
+Assess a Giving Directions response qualitatively. Do not give any score, band, grade, percentage or estimated level.
 Judge route accuracy against the reference route, but accept equivalent correct wording.
 Pronunciation is only a cautious provisional estimate based on whether Whisper could transcribe the recording; do not invent individual sound errors.
 Return valid JSON only with this exact structure:
 {
-  "route_accuracy":{"score":0,"status":"partly correct","feedback_vi":""},
-  "grammar_vocabulary":{"score":0,"strengths":[],"corrections":[]},
-  "pronunciation":{"score":0,"provisional":true,"feedback_vi":""},
-  "interactive_communication":{"score":0,"feedback_vi":""},
-  "global_achievement":{"score":0,"feedback_vi":""},
+  "route_accuracy":{"status":"partly correct","feedback_vi":""},
+  "grammar_vocabulary":{"feedback_vi":"","strengths":[],"corrections":[]},
+  "pronunciation":{"provisional":true,"feedback_vi":""},
+  "interactive_communication":{"feedback_vi":""},
+  "global_achievement":{"feedback_vi":""},
   "corrected_answer":"",
   "model_answer":"",
   "next_step_vi":""
