@@ -181,7 +181,7 @@ Trả lời rõ ràng và dễ đọc.
 
     const completion =
       await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
 
         temperature:
           mode === "writing" ? 0.2 : 0.5,
