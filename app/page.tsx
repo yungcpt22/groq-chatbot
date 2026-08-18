@@ -29,11 +29,12 @@ type WritingCriterion = {
 };
 
 type WritingResult = {
-  overall_band?: number;
-  task_response?: WritingCriterion;
-  coherence_cohesion?: WritingCriterion;
-  lexical_resource?: WritingCriterion;
-  grammar?: WritingCriterion;
+  overall_score?: number;
+  estimated_cefr?: "A1" | "A2" | "B1";
+  content?: WritingCriterion;
+  communicative_achievement?: WritingCriterion;
+  organisation?: WritingCriterion;
+  language?: WritingCriterion;
   annotated_text?: WritingPart[];
   corrections?: WritingCorrection[];
   idea_development?: {
@@ -41,7 +42,7 @@ type WritingResult = {
     example_en?: string;
   }[];
   improved_version?: string;
-  band_7_plus_version?: string;
+  b1_model_version?: string;
   priority_improvements?: string[];
 };
 
@@ -66,23 +67,24 @@ type PracticeWord = {
 };
 
 type SpeakingAnalysis = {
-  overall_band?: number;
+  overall_score?: number;
+  estimated_cefr?: "A1" | "A2" | "B1";
 
-  fluency?: {
+  interactive_communication?: {
     band?: number;
     strengths?: string[];
     problems?: string[];
     advice?: string[];
   };
 
-  lexical?: {
+  grammar_vocabulary?: {
     band?: number;
     strengths?: string[];
     problems?: string[];
     better_vocabulary?: string[];
   };
 
-  grammar?: {
+  global_achievement?: {
     band?: number;
     strengths?: string[];
     problems?: string[];
@@ -475,7 +477,7 @@ export default function Home() {
               </h2>
 
               <p className="mt-2 text-slate-500">
-                Hỏi về grammar, vocabulary, IELTS hoặc bất kỳ
+                Hỏi về grammar, vocabulary, Cambridge A1–B1 hoặc bất kỳ
                 vấn đề tiếng Anh nào.
               </p>
             </div>
@@ -551,8 +553,8 @@ export default function Home() {
               </h2>
 
               <p className="mt-2 text-slate-500">
-                Dán bài IELTS Writing để AI chấm, sửa lỗi và
-                đề xuất cách cải thiện.
+                Dán bài Writing để AI đánh giá theo tiêu chí
+                Cambridge A1–B1, sửa lỗi và đề xuất cách cải thiện.
               </p>
             </div>
 
@@ -560,7 +562,7 @@ export default function Home() {
               <textarea
                 value={writingInput}
                 onChange={(e) => setWritingInput(e.target.value)}
-                placeholder="Paste your IELTS Writing essay here..."
+                placeholder="Paste your A1–B1 English writing here..."
                 rows={14}
                 className="w-full resize-y rounded-2xl border p-4 outline-none focus:border-slate-400"
               />
@@ -581,40 +583,37 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="rounded-3xl bg-black p-7 text-white">
                   <p className="text-slate-300">
-                    Estimated Overall
+                    Cambridge A1–B1 • Estimated Overall
                   </p>
 
                   <p className="mt-2 text-6xl font-bold">
-                    {displayScore(writingResult.overall_band)}
+                    {displayScore(writingResult.overall_score)}/5
                   </p>
 
                   <p className="mt-3 text-xs text-slate-400">
-                    Band do AI ước lượng, không phải điểm IELTS
-                    chính thức.
+                    Mức CEFR ước lượng: {writingResult.estimated_cefr || "—"}. Đây là phản hồi học tập, không phải kết quả Cambridge chính thức.
                   </p>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-4">
                   <ScoreCard
-                    title="Task Response"
-                    score={writingResult.task_response?.band}
+                    title="Content"
+                    score={writingResult.content?.band}
                   />
 
                   <ScoreCard
-                    title="Coherence"
-                    score={
-                      writingResult.coherence_cohesion?.band
-                    }
+                    title="Communicative Achievement"
+                    score={writingResult.communicative_achievement?.band}
                   />
 
                   <ScoreCard
-                    title="Lexical Resource"
-                    score={writingResult.lexical_resource?.band}
+                    title="Organisation"
+                    score={writingResult.organisation?.band}
                   />
 
                   <ScoreCard
-                    title="Grammar"
-                    score={writingResult.grammar?.band}
+                    title="Language"
+                    score={writingResult.language?.band}
                   />
                 </div>
 
@@ -699,23 +698,23 @@ export default function Home() {
                 </div>
 
                 <WritingCriterionSection
-                  title="Task Response"
-                  data={writingResult.task_response}
+                  title="Content"
+                  data={writingResult.content}
                 />
 
                 <WritingCriterionSection
-                  title="Coherence & Cohesion"
-                  data={writingResult.coherence_cohesion}
+                  title="Communicative Achievement"
+                  data={writingResult.communicative_achievement}
                 />
 
                 <WritingCriterionSection
-                  title="Lexical Resource"
-                  data={writingResult.lexical_resource}
+                  title="Organisation"
+                  data={writingResult.organisation}
                 />
 
                 <WritingCriterionSection
-                  title="Grammatical Range & Accuracy"
-                  data={writingResult.grammar}
+                  title="Language"
+                  data={writingResult.language}
                 />
 
                 {writingResult.idea_development &&
@@ -776,10 +775,10 @@ export default function Home() {
                   />
                 )}
 
-                {writingResult.band_7_plus_version && (
+                {writingResult.b1_model_version && (
                   <TextResultCard
-                    title="🚀 Band 7+ Reference"
-                    text={writingResult.band_7_plus_version}
+                    title="🚀 B1 Model Version"
+                    text={writingResult.b1_model_version}
                   />
                 )}
               </div>
@@ -800,7 +799,7 @@ export default function Home() {
 
               <p className="mt-2 text-slate-500">
                 Ghi âm để nhận transcript, sửa lỗi, đánh giá
-                Fluency, Vocabulary, Grammar và nhận hướng dẫn
+                theo tiêu chí Cambridge A1–B1 và nhận hướng dẫn
                 luyện phát âm.
               </p>
             </div>
@@ -840,43 +839,39 @@ export default function Home() {
               <>
                 <div className="rounded-3xl bg-black p-7 text-white">
                   <p className="text-slate-300">
-                    Estimated Overall
+                    Cambridge A1–B1 • Estimated Overall
                   </p>
 
                   <p className="mt-2 text-6xl font-bold">
                     {displayScore(
-                      speakingAnalysis.overall_band
-                    )}
+                      speakingAnalysis.overall_score
+                    )}/5
                   </p>
 
                   <p className="mt-3 text-xs text-slate-400">
-                    Điểm do AI ước lượng, không phải điểm IELTS
-                    Speaking chính thức.
+                    Mức CEFR ước lượng: {speakingAnalysis.estimated_cefr || "—"}. Đây là phản hồi học tập, không phải kết quả Cambridge chính thức.
                   </p>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-4">
                   <ScoreCard
-                    title="Fluency & Coherence"
-                    score={speakingAnalysis.fluency?.band}
-                  />
-
-                  <ScoreCard
-                    title="Lexical Resource"
-                    score={speakingAnalysis.lexical?.band}
-                  />
-
-                  <ScoreCard
-                    title="Grammar"
-                    score={speakingAnalysis.grammar?.band}
+                    title="Grammar & Vocabulary"
+                    score={speakingAnalysis.grammar_vocabulary?.band}
                   />
 
                   <ScoreCard
                     title="Pronunciation"
-                    score={
-                      speakingAnalysis.pronunciation
-                        ?.estimated_band
-                    }
+                    score={speakingAnalysis.pronunciation?.estimated_band}
+                  />
+
+                  <ScoreCard
+                    title="Interactive Communication"
+                    score={speakingAnalysis.interactive_communication?.band}
+                  />
+
+                  <ScoreCard
+                    title="Global Achievement"
+                    score={speakingAnalysis.global_achievement?.band}
                   />
                 </div>
 
@@ -991,43 +986,33 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* FLUENCY */}
-
                 <SpeakingCriterionSection
-                  title="🗣️ Fluency & Coherence"
-                  band={speakingAnalysis.fluency?.band}
+                  title="🧩 Grammar & Vocabulary"
+                  band={speakingAnalysis.grammar_vocabulary?.band}
                   strengths={
-                    speakingAnalysis.fluency?.strengths
+                    speakingAnalysis.grammar_vocabulary?.strengths
                   }
-                  problems={speakingAnalysis.fluency?.problems}
-                  advice={speakingAnalysis.fluency?.advice}
+                  problems={speakingAnalysis.grammar_vocabulary?.problems}
+                  advice={speakingAnalysis.grammar_vocabulary?.better_vocabulary}
                 />
 
-                {/* LEXICAL */}
-
                 <SpeakingCriterionSection
-                  title="📚 Lexical Resource"
-                  band={speakingAnalysis.lexical?.band}
+                  title="💬 Interactive Communication"
+                  band={speakingAnalysis.interactive_communication?.band}
                   strengths={
-                    speakingAnalysis.lexical?.strengths
+                    speakingAnalysis.interactive_communication?.strengths
                   }
-                  problems={speakingAnalysis.lexical?.problems}
-                  advice={
-                    speakingAnalysis.lexical
-                      ?.better_vocabulary
-                  }
-                  adviceTitle="Từ/cụm từ nên dùng"
+                  problems={speakingAnalysis.interactive_communication?.problems}
+                  advice={speakingAnalysis.interactive_communication?.advice}
                 />
 
-                {/* GRAMMAR */}
-
                 <SpeakingCriterionSection
-                  title="🧩 Grammatical Range & Accuracy"
-                  band={speakingAnalysis.grammar?.band}
+                  title="🌟 Global Achievement"
+                  band={speakingAnalysis.global_achievement?.band}
                   strengths={
-                    speakingAnalysis.grammar?.strengths
+                    speakingAnalysis.global_achievement?.strengths
                   }
-                  problems={speakingAnalysis.grammar?.problems}
+                  problems={speakingAnalysis.global_achievement?.problems}
                 />
 
                 {/* PRONUNCIATION */}
@@ -1330,8 +1315,8 @@ export default function Home() {
       </div>
 
       <footer className="border-t bg-white px-5 py-5 text-center text-xs text-slate-400">
-        AI có thể mắc lỗi. Điểm IELTS chỉ là ước lượng và không
-        thay thế đánh giá chính thức.
+        AI có thể mắc lỗi. Mức Cambridge A1–B1 chỉ là ước lượng
+        phục vụ học tập, không thay thế đánh giá chính thức.
       </footer>
     </main>
   );
@@ -1377,7 +1362,7 @@ function ScoreCard({
       <p className="text-sm text-slate-500">{title}</p>
 
       <p className="mt-3 text-4xl font-bold">
-        {displayScore(score)}
+        {displayScore(score)}{score != null ? "/5" : ""}
       </p>
     </div>
   );
@@ -1416,7 +1401,7 @@ function WritingCriterionSection({
         {data.band != null && (
           <div className="rounded-xl bg-slate-100 px-4 py-2">
             <span className="text-sm text-slate-500">
-              Band{" "}
+              Điểm /5{" "}
             </span>
 
             <span className="text-xl font-bold">
@@ -1481,7 +1466,7 @@ function SpeakingCriterionSection({
         {band != null && (
           <div className="rounded-xl bg-slate-100 px-4 py-2">
             <span className="text-sm text-slate-500">
-              Band{" "}
+              Điểm /5{" "}
             </span>
 
             <span className="text-xl font-bold">

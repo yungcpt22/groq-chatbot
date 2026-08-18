@@ -4,6 +4,20 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+type WhisperSegment = {
+  start?: number;
+  end?: number;
+  text?: string;
+  avg_logprob?: number;
+  no_speech_prob?: number;
+};
+
+type VerboseTranscription = {
+  text?: string;
+  duration?: number;
+  segments?: WhisperSegment[];
+};
+
 function safeNumber(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -85,15 +99,14 @@ export async function POST(req: Request) {
      * STEP 1
      * Chuyển audio thành transcript bằng Whisper.
      */
-    const transcription: any =
-      await groq.audio.transcriptions.create({
+    const transcription = (await groq.audio.transcriptions.create({
         file: audio,
         model: "whisper-large-v3-turbo",
         language: "en",
         response_format: "verbose_json",
         temperature: 0,
         timestamp_granularities: ["segment"],
-      });
+      })) as unknown as VerboseTranscription;
 
     const transcript = transcription.text?.trim() || "";
 
@@ -167,7 +180,7 @@ export async function POST(req: Request) {
      */
     const segmentSummary = segments
       .slice(0, 50)
-      .map((segment: any, index: number) => {
+      .map((segment: WhisperSegment, index: number) => {
         return {
           index,
           start: safeNumber(segment?.start, 0),
@@ -185,7 +198,7 @@ export async function POST(req: Request) {
       });
 
     const systemPrompt = `
-Bạn là IELTS Speaking Coach dành cho người Việt Nam học tiếng Anh.
+Bạn là Cambridge English Speaking Coach dành cho người Việt Nam ở trình độ CEFR A1–B1.
 
 Bạn phải đánh giá bài nói dựa trên transcript và metadata được cung cấp.
 
@@ -215,34 +228,26 @@ Nếu không đủ bằng chứng, phải nói rõ đó là gợi ý luyện t�
 
 =========================
 
-IELTS SPEAKING CRITERIA
+CAMBRIDGE SPEAKING CRITERIA A1–B1
 
 Đánh giá:
 
-1. Fluency & Coherence
-2. Lexical Resource
-3. Grammatical Range & Accuracy
-4. Pronunciation Coaching Estimate
+1. Grammar and Vocabulary: phạm vi, độ chính xác và khả năng kiểm soát ngôn ngữ phù hợp trình độ.
+2. Pronunciation: mức độ dễ hiểu, âm, trọng âm từ, trọng âm câu, nhịp điệu và ngữ điệu. Đây chỉ là coaching estimate từ dữ liệu hiện có.
+3. Interactive Communication: khả năng đáp ứng, duy trì lời nói, phát triển câu trả lời và mức độ cần hỗ trợ. Với bài độc thoại ngắn, chỉ ước lượng từ độ liên quan, độ trôi chảy và khả năng nối tiếp ý.
+4. Global Achievement: khả năng truyền đạt ý nghĩa tổng thể trong các tình huống quen thuộc và tạo phát ngôn phù hợp mức A1, A2 hoặc B1.
 
-Band score sử dụng:
+Cho điểm 0–5 cho từng tiêu chí và điểm tổng 0–5; chỉ dùng số nguyên.
+Ước lượng mức CEFR gần nhất là A1, A2 hoặc B1.
+Mốc diễn giải:
+- 5: thể hiện vững mức mục tiêu, truyền đạt hiệu quả dù có thể còn do dự.
+- 4: nằm giữa mô tả 3 và 5.
+- 3: truyền đạt được ý cơ bản trong tình huống quen thuộc; phát ngôn còn ngắn hoặc có do dự.
+- 2: nằm giữa mô tả 1 và 3.
+- 1: khó truyền đạt ý cơ bản; chủ yếu dùng từ hoặc cụm rất ngắn và cần nhiều hỗ trợ.
+- 0: không đủ ngôn ngữ để đánh giá.
 
-1
-1.5
-2
-2.5
-3
-3.5
-4
-4.5
-5
-5.5
-6
-6.5
-7
-7.5
-8
-8.5
-9
+Tuyệt đối không dùng thuật ngữ, band hoặc tiêu chí IELTS.
 
 =========================
 
@@ -354,23 +359,24 @@ Không dùng dấu \`\`\`.
 Schema:
 
 {
-  "overall_band": 0,
+  "overall_score": 0,
+  "estimated_cefr": "A1",
 
-  "fluency": {
+  "interactive_communication": {
     "band": 0,
     "strengths": [],
     "problems": [],
     "advice": []
   },
 
-  "lexical": {
+  "grammar_vocabulary": {
     "band": 0,
     "strengths": [],
     "problems": [],
     "better_vocabulary": []
   },
 
-  "grammar": {
+  "global_achievement": {
     "band": 0,
     "strengths": [],
     "problems": []

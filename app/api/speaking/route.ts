@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-You are an expert English Speaking Coach and IELTS Speaking examiner.
+You are a Cambridge English Speaking Coach for Vietnamese learners at CEFR A1–B1.
 
 Evaluate the learner's spoken English based on the transcript below.
 
@@ -28,43 +28,29 @@ Therefore:
 - Pronunciation must be marked as "audio_required" until audio analysis is available.
 - Focus the current assessment on language and transcript-based fluency evidence.
 
-Evaluate these IELTS Speaking criteria:
+Evaluate these Cambridge Speaking criteria:
 
-1. FLUENCY AND COHERENCE
-Consider:
-- fluency
-- hesitation visible in the transcript
-- repetition
-- self-correction
-- filler words
-- coherence
-- discourse markers
-- development of ideas
-
-2. LEXICAL RESOURCE
+1. GRAMMAR AND VOCABULARY
 Consider:
 - vocabulary range
 - precision of word choice
 - collocations
-- idiomatic language
-- paraphrasing
-- inappropriate vocabulary
-- repeated vocabulary
-
-3. GRAMMATICAL RANGE AND ACCURACY
-Consider:
 - range of grammatical structures
-- simple and complex sentences
 - grammatical accuracy
 - systematic errors
 - sentence formation
 
-4. PRONUNCIATION
+2. PRONUNCIATION
 Do NOT estimate a pronunciation band from transcript alone.
 Set its status to "audio_required".
 
-Use IELTS-style bands from 0 to 9.
-Half bands such as 5.5, 6.5 and 7.5 are allowed.
+3. INTERACTIVE COMMUNICATION
+Estimate from relevance, response development, linking of ideas, hesitation and the apparent support needed. State that interaction is limited when only a monologue transcript is available.
+
+4. GLOBAL ACHIEVEMENT
+Judge how successfully the learner conveys basic meaning in familiar situations and whether utterances fit A1, A2 or B1.
+
+Use integer scores from 0 to 5 and estimate CEFR as A1, A2 or B1. Never use IELTS terms or bands.
 
 Return ONLY valid JSON.
 Do not use Markdown.
@@ -73,29 +59,24 @@ Do not put the JSON inside code fences.
 Use exactly this structure:
 
 {
-  "overall_band": 0,
-  "fluency_coherence": {
+  "overall_score": 0,
+  "estimated_cefr": "A1",
+  "grammar_vocabulary": {
     "band": 0,
     "strengths": [],
     "problems": [],
     "advice": []
   },
-  "lexical_resource": {
+  "interactive_communication": {
     "band": 0,
     "strengths": [],
     "problems": [],
-    "better_vocabulary": []
+    "advice": []
   },
-  "grammar": {
+  "global_achievement": {
     "band": 0,
     "strengths": [],
-    "errors": [
-      {
-        "original": "",
-        "corrected": "",
-        "explanation": ""
-      }
-    ],
+    "problems": [],
     "advice": []
   },
   "pronunciation": {
@@ -120,7 +101,7 @@ Transcript:
         {
           role: "system",
           content:
-            "You are a strict but helpful English Speaking Coach. Return valid JSON only.",
+            "You are a supportive Cambridge English A1–B1 Speaking Coach. Return valid JSON only and never use IELTS scoring.",
         },
         {
           role: "user",
