@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Mode = "chat" | "writing" | "speaking";
 
@@ -123,6 +123,15 @@ type AudioMetrics = {
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("chat");
+
+  useEffect(() => {
+    const embedded = window.self !== window.top;
+    document.documentElement.classList.toggle("embedded-chat", embedded);
+
+    return () => {
+      document.documentElement.classList.remove("embedded-chat");
+    };
+  }, []);
 
   // CHAT
   const [messages, setMessages] = useState<Message[]>([]);
@@ -415,7 +424,7 @@ export default function Home() {
       <header className="border-b bg-white">
   <div className="mx-auto max-w-6xl px-5 py-5">
 
-    <div className="flex items-center gap-4">
+    <div className="chat-brand flex items-center gap-4">
       <img
         src="/logo.png"
         alt="Technical College of Communications"
