@@ -67,7 +67,6 @@ Judge route accuracy against the reference route, but accept equivalent correct 
 Pronunciation is only a cautious provisional estimate based on whether Whisper could transcribe the recording; do not invent individual sound errors.
 Return valid JSON only with this exact structure:
 {
-  "estimated_cefr":"A1",
   "overall_score":0,
   "route_accuracy":{"score":0,"status":"partly correct","feedback_vi":""},
   "grammar_vocabulary":{"score":0,"strengths":[],"corrections":[]},

@@ -12,7 +12,6 @@ const scenarios = [
 
 type Score = { score?: number; feedback_vi?: string };
 type Result = {
-  estimated_cefr?: string;
   overall_score?: number;
   route_accuracy?: Score & { status?: string };
   grammar_vocabulary?: Score & { strengths?: string[]; corrections?: string[] };
@@ -125,7 +124,7 @@ export default function DirectionsSpeaking() {
         {transcript && <div className="mt-5 rounded-2xl bg-white p-4"><h2 className="font-bold">Your transcript</h2><p className="mt-1 text-slate-700">{transcript}</p></div>}
 
         {result && <div className="mt-5 space-y-4">
-          <div className="flex flex-wrap items-center gap-3"><span className="rounded-full bg-violet-100 px-4 py-2 font-bold text-violet-700">Estimated {result.estimated_cefr}</span><span className="rounded-full bg-emerald-100 px-4 py-2 font-bold text-emerald-700">Overall {result.overall_score}/5</span></div>
+          <div className="flex flex-wrap items-center gap-3"><span className="rounded-full bg-emerald-100 px-4 py-2 font-bold text-emerald-700">Overall {result.overall_score}/5</span></div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{cards.map(([label, score]) => <div key={String(label)} className="rounded-2xl bg-white p-3 text-center shadow-sm"><div className="text-2xl font-extrabold text-cyan-700">{String(score ?? 0)}/5</div><div className="mt-1 text-xs font-semibold">{label}</div></div>)}</div>
           <div className="grid gap-4 md:grid-cols-2">
             <Feedback title="Route feedback" text={result.route_accuracy?.feedback_vi} />
