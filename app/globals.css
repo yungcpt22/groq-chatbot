@@ -20,11 +20,153 @@
 }
 
 body {
-  background: var(--background);
+  background: #f6f7fb;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 .embedded-chat .chat-brand {
   display: none;
+}
+
+.coach-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-color: #e7e9f2;
+  box-shadow: 0 4px 18px rgb(31 41 55 / 5%);
+}
+
+.coach-tabs {
+  align-items: center;
+}
+
+.coach-tab {
+  min-height: 44px;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.coach-tab:hover {
+  transform: translateY(-1px);
+}
+
+.coach-tab.active {
+  background: linear-gradient(135deg, #5542d2, #7561ed);
+  box-shadow: 0 8px 20px rgb(85 66 210 / 24%);
+}
+
+.coach-intro h2 {
+  letter-spacing: -0.025em;
+}
+
+.coach-card,
+.coach-chat-log {
+  border-color: #e4e6ef;
+  box-shadow: 0 12px 34px rgb(35 38 58 / 6%);
+}
+
+.coach-upload {
+  border-color: #c9d5ff;
+  background: linear-gradient(135deg, #f0f5ff, #f8f7ff);
+}
+
+/* Compact, balanced layout when the coach is displayed inside the lesson. */
+.embedded-chat body {
+  background: #f7f7fc;
+}
+
+.embedded-chat .coach-app {
+  min-height: 100vh;
+}
+
+.embedded-chat .coach-header {
+  position: sticky;
+  top: 0;
+}
+
+.embedded-chat .coach-header-inner {
+  padding: 14px 16px;
+}
+
+.embedded-chat .coach-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 0;
+}
+
+.embedded-chat .coach-tab {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 8px;
+  border-radius: 13px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.embedded-chat .coach-content {
+  width: 100%;
+  padding: 18px 16px 24px;
+}
+
+.embedded-chat .coach-section {
+  gap: 16px;
+}
+
+.embedded-chat .coach-intro h2 {
+  font-size: 25px;
+  line-height: 1.15;
+}
+
+.embedded-chat .coach-intro p {
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.embedded-chat .coach-card,
+.embedded-chat .coach-chat-log {
+  padding: 16px;
+  border-radius: 20px;
+}
+
+.embedded-chat .coach-chat-log {
+  min-height: 285px;
+}
+
+.embedded-chat .coach-chat-empty {
+  min-height: 230px;
+  font-size: 14px;
+}
+
+.embedded-chat .coach-upload {
+  padding: 15px;
+  margin-bottom: 14px;
+}
+
+.embedded-chat .coach-upload > div:first-child {
+  align-items: flex-start;
+}
+
+.embedded-chat .coach-upload label {
+  width: 100%;
+  padding: 11px 14px;
+  text-align: center;
+}
+
+.embedded-chat textarea {
+  font-size: 15px;
+}
+
+@media (max-width: 380px) {
+  .embedded-chat .coach-header-inner,
+  .embedded-chat .coach-content {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .embedded-chat .coach-tab {
+    font-size: 12px;
+    padding-inline: 4px;
+  }
 }

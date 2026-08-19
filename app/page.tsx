@@ -474,9 +474,9 @@ export default function Home() {
   // =========================================================
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="border-b bg-white">
-  <div className="mx-auto max-w-6xl px-5 py-5">
+    <main className="coach-app min-h-screen bg-slate-50 text-slate-950">
+      <header className="coach-header border-b bg-white">
+  <div className="coach-header-inner mx-auto max-w-6xl px-5 py-5">
 
     <div className="chat-brand flex items-center gap-4">
       <img
@@ -496,7 +496,7 @@ export default function Home() {
       </div>
     </div>
 
-    <div className="mt-5 flex flex-wrap gap-2">
+    <div className="coach-tabs mt-5 flex flex-wrap gap-2">
             <TabButton
               active={mode === "chat"}
               onClick={() => setMode("chat")}
@@ -521,7 +521,7 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-5 py-8">
+      <div className="coach-content mx-auto max-w-6xl px-5 py-8">
         {error && (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
             {error}
@@ -533,8 +533,8 @@ export default function Home() {
         ===================================================== */}
 
         {mode === "chat" && (
-          <section className="space-y-6">
-            <div>
+          <section className="coach-section space-y-6">
+            <div className="coach-intro">
               <h2 className="text-3xl font-bold">
                 💬 AI Chat
               </h2>
@@ -545,9 +545,9 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="min-h-[420px] rounded-3xl border bg-white p-6">
+            <div className="coach-chat-log min-h-[420px] rounded-3xl border bg-white p-6">
               {messages.length === 0 && (
-                <div className="flex min-h-[350px] items-center justify-center text-center text-slate-400">
+                <div className="coach-chat-empty flex min-h-[350px] items-center justify-center text-center text-slate-400">
                   Hãy đặt câu hỏi để bắt đầu.
                 </div>
               )}
@@ -609,8 +609,8 @@ export default function Home() {
         ===================================================== */}
 
         {mode === "writing" && (
-          <section className="space-y-6">
-            <div>
+          <section className="coach-section space-y-6">
+            <div className="coach-intro">
               <h2 className="text-3xl font-bold">
                 ✍️ Writing Coach
               </h2>
@@ -621,8 +621,8 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-3xl border bg-white p-6">
-              <div className="mb-5 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50 p-5">
+            <div className="coach-card rounded-3xl border bg-white p-6">
+              <div className="coach-upload mb-5 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="font-bold text-slate-900">📤 Tải bài viết lên</p>
@@ -896,8 +896,8 @@ export default function Home() {
         ===================================================== */}
 
         {mode === "speaking" && (
-          <section className="space-y-6">
-            <div>
+          <section className="coach-section space-y-6">
+            <div className="coach-intro">
               <h2 className="text-3xl font-bold">
                 🎙️ Speaking Coach
               </h2>
@@ -909,7 +909,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-3xl border bg-white p-6">
+            <div className="coach-card rounded-3xl border bg-white p-6">
               <button
                 type="button"
                 onClick={
@@ -1419,10 +1419,6 @@ export default function Home() {
         )}
       </div>
 
-      <footer className="border-t bg-white px-5 py-5 text-center text-xs text-slate-400">
-        AI có thể mắc lỗi. Mức Cambridge A1–B1 chỉ là ước lượng
-        phục vụ học tập, không thay thế đánh giá chính thức.
-      </footer>
     </main>
   );
 }
@@ -1446,8 +1442,8 @@ function TabButton({
       onClick={onClick}
       className={
         active
-          ? "rounded-xl bg-black px-5 py-2.5 font-semibold text-white"
-          : "rounded-xl bg-slate-100 px-5 py-2.5 font-semibold text-slate-600 hover:bg-slate-200"
+          ? "coach-tab active rounded-xl bg-black px-5 py-2.5 font-semibold text-white"
+          : "coach-tab rounded-xl bg-slate-100 px-5 py-2.5 font-semibold text-slate-600 hover:bg-slate-200"
       }
     >
       {children}
