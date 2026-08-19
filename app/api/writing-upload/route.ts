@@ -31,6 +31,9 @@ function cleanOcrText(value: string) {
   const closingThink = text.toLowerCase().lastIndexOf("</think>");
   if (closingThink !== -1) {
     text = text.slice(closingThink + "</think>".length);
+  } else if (/^\s*<think>/i.test(text)) {
+    // Never expose an unfinished reasoning trace to the student.
+    return "";
   }
 
   // Defensive cleanup in case the provider returns a complete reasoning block.
@@ -64,7 +67,9 @@ async function readImage(file: File) {
   const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
   const completion = await groq.chat.completions.create({
     model: "qwen/qwen3.6-27b",
-    temperature: 0,
+    reasoning_effort: "none",
+    reasoning_format: "hidden",
+    temperature: 0.2,
     max_completion_tokens: 4096,
     messages: [
       {
