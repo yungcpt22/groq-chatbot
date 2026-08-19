@@ -23,6 +23,34 @@ function cleanText(value: string) {
     .slice(0, MAX_TEXT_LENGTH);
 }
 
+function cleanOcrText(value: string) {
+  let text = value.trim();
+
+  // Some reasoning models expose their internal analysis before the final
+  // transcription. Keep only the final answer when a closing tag is present.
+  const closingThink = text.toLowerCase().lastIndexOf("</think>");
+  if (closingThink !== -1) {
+    text = text.slice(closingThink + "</think>".length);
+  }
+
+  // Defensive cleanup in case the provider returns a complete reasoning block.
+  text = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
+  text = text.replace(/^```(?:text|plaintext)?\s*/i, "").replace(/```\s*$/i, "");
+  text = text.replace(/^\s*(?:transcription|student(?:'s)? writing)\s*:\s*/i, "");
+
+  // Remove one pair of quotation marks only when they wrap the whole result.
+  text = text.trim();
+  if (
+    text.length >= 2 &&
+    ((text.startsWith('"') && text.endsWith('"')) ||
+      (text.startsWith("“") && text.endsWith("”")))
+  ) {
+    text = text.slice(1, -1);
+  }
+
+  return cleanText(text);
+}
+
 async function readImage(file: File) {
   if (file.size > MAX_IMAGE_BYTES) {
     throw new Error("Ảnh phải nhỏ hơn 4 MB.");
@@ -44,11 +72,13 @@ async function readImage(file: File) {
         content: [
           {
             type: "text",
-            text: `Transcribe the English writing in this image exactly as written.
+            text: `You are a transcription engine, not an editor.
+Transcribe the English writing in this image exactly as written.
 Preserve spelling, grammar, punctuation, paragraph breaks and mistakes.
 Do not correct, explain, translate, grade or add missing words.
 Ignore printed worksheet instructions, page numbers and decorative text when they are clearly not part of the student's answer.
-Return only the student's transcribed writing as plain text.`,
+Do not show analysis, reasoning, self-correction, notes, labels, Markdown or XML tags.
+Return only the student's transcribed writing as plain text. Your first character must be the first character of the student's answer.`,
           },
           {
             type: "image_url",
@@ -59,7 +89,7 @@ Return only the student's transcribed writing as plain text.`,
     ],
   });
 
-  return cleanText(completion.choices[0]?.message?.content || "");
+  return cleanOcrText(completion.choices[0]?.message?.content || "");
 }
 
 async function readDocument(file: File) {
