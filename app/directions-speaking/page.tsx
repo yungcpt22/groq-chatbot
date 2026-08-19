@@ -12,15 +12,19 @@ const scenarios = [
 
 type FeedbackItem = { feedback_vi?: string };
 type Result = {
-  route_accuracy?: FeedbackItem & { status?: string };
-  grammar_vocabulary?: FeedbackItem & { strengths?: string[]; corrections?: string[] };
-  pronunciation?: FeedbackItem & { provisional?: boolean };
-  interactive_communication?: FeedbackItem;
-  global_achievement?: FeedbackItem;
+  route_accuracy?: FeedbackItem & { status?: string; destination_reached?: boolean; correct_steps?: string[]; missing_or_incorrect_steps?: string[] };
+  grammar_vocabulary?: FeedbackItem & { strengths?: string[]; corrections?: { original?: string; corrected?: string; explanation_vi?: string }[]; useful_phrases?: string[] };
+  pronunciation?: FeedbackItem & { provisional?: boolean; intelligibility?: string; practice_words?: { word?: string; ipa?: string; tip_vi?: string }[] };
+  fluency?: FeedbackItem & { strengths?: string[]; advice?: string[] };
+  interactive_communication?: FeedbackItem & { strengths?: string[]; advice?: string[] };
+  global_achievement?: FeedbackItem & { can_do?: string[]; next_target_vi?: string };
   corrected_answer?: string;
-  model_answer?: string;
-  next_step_vi?: string;
+  natural_model_answer?: string;
+  shadowing_chunks?: string[];
+  priority_improvements?: string[];
 };
+
+type Metrics = { duration_seconds?: number | null; words_per_minute?: number | null; filler_count?: number; long_pauses?: { after?: string; duration?: number }[] };
 
 export default function DirectionsSpeaking() {
   const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -28,6 +32,7 @@ export default function DirectionsSpeaking() {
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [result, setResult] = useState<Result | null>(null);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -41,6 +46,7 @@ export default function DirectionsSpeaking() {
           setScenarioIndex(index);
           setTranscript("");
           setResult(null);
+          setMetrics(null);
           setError("");
         }
       }
@@ -63,6 +69,7 @@ export default function DirectionsSpeaking() {
       if (!response.ok) throw new Error(data.error || "Không thể chấm bài nói.");
       setTranscript(data.transcript || "");
       setResult(data.result || null);
+      setMetrics(data.metrics || null);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Không thể chấm bài nói.");
     } finally {
@@ -81,13 +88,15 @@ export default function DirectionsSpeaking() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
-      const recorder = new MediaRecorder(stream);
+      const preferredType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(type => MediaRecorder.isTypeSupported(type));
+      const recorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
       recorderRef.current = recorder;
       recorder.ondataavailable = event => { if (event.data.size) chunksRef.current.push(event.data); };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         streamRef.current?.getTracks().forEach(track => track.stop());
-        void sendAudio(blob);
+        if (blob.size < 1500) setError("Bản ghi quá ngắn. Hãy nói ít nhất một câu đầy đủ rồi thử lại.");
+        else void sendAudio(blob);
       };
       recorder.start();
       setRecording(true);
@@ -115,16 +124,20 @@ export default function DirectionsSpeaking() {
         {transcript && <div className="mt-5 rounded-2xl bg-white p-4"><h2 className="font-bold">Your transcript</h2><p className="mt-1 text-slate-700">{transcript}</p></div>}
 
         {result && <div className="mt-5 space-y-4">
+          {metrics && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Duration" value={metrics.duration_seconds ? `${metrics.duration_seconds.toFixed(1)}s` : "—"} /><Metric label="Speaking rate" value={metrics.words_per_minute ? `${metrics.words_per_minute} wpm` : "—"} /><Metric label="Fillers" value={String(metrics.filler_count ?? 0)} /><Metric label="Long pauses" value={String(metrics.long_pauses?.length ?? 0)} /></div>}
           <div className="grid gap-4 md:grid-cols-2">
-            <Feedback title="Route feedback" text={result.route_accuracy?.feedback_vi} />
-            <Feedback title="Grammar & Vocabulary" text={result.grammar_vocabulary?.feedback_vi} />
-            <Feedback title="Pronunciation note" text={result.pronunciation?.feedback_vi} />
-            <Feedback title="Interactive Communication" text={result.interactive_communication?.feedback_vi} />
-            <Feedback title="Global Achievement" text={result.global_achievement?.feedback_vi} />
+            <DetailedFeedback title="Route accuracy" text={result.route_accuracy?.feedback_vi} good={result.route_accuracy?.correct_steps} improve={result.route_accuracy?.missing_or_incorrect_steps} />
+            <DetailedFeedback title="Grammar & Vocabulary" text={result.grammar_vocabulary?.feedback_vi} good={result.grammar_vocabulary?.strengths} improve={result.grammar_vocabulary?.useful_phrases} />
+            <DetailedFeedback title="Pronunciation coaching" text={result.pronunciation?.feedback_vi} improve={result.pronunciation?.practice_words?.map(item => `${item.word || ""} ${item.ipa || ""} — ${item.tip_vi || ""}`)} />
+            <DetailedFeedback title="Fluency" text={result.fluency?.feedback_vi} good={result.fluency?.strengths} improve={result.fluency?.advice} />
+            <DetailedFeedback title="Interactive Communication" text={result.interactive_communication?.feedback_vi} good={result.interactive_communication?.strengths} improve={result.interactive_communication?.advice} />
+            <DetailedFeedback title="Global Achievement" text={result.global_achievement?.feedback_vi} good={result.global_achievement?.can_do} improve={result.global_achievement?.next_target_vi ? [result.global_achievement.next_target_vi] : []} />
             <Feedback title="Corrected answer" text={result.corrected_answer} />
-            <Feedback title="Model answer" text={result.model_answer} />
+            <Feedback title="Natural model answer" text={result.natural_model_answer} />
           </div>
-          {result.next_step_vi && <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-4"><b>Next step:</b> {result.next_step_vi}</div>}
+          {!!result.grammar_vocabulary?.corrections?.length && <div className="rounded-2xl bg-white p-4 shadow-sm"><h3 className="font-bold text-cyan-800">Corrections</h3><div className="mt-3 space-y-3">{result.grammar_vocabulary.corrections.map((item, index) => <div key={index} className="rounded-xl border border-red-100 bg-red-50 p-3"><p><span className="text-red-700 line-through">{item.original}</span> → <b className="text-emerald-700">{item.corrected}</b></p><p className="mt-1 text-sm text-slate-600">{item.explanation_vi}</p></div>)}</div></div>}
+          {!!result.shadowing_chunks?.length && <div className="rounded-2xl bg-violet-50 p-4"><h3 className="font-bold text-violet-800">Shadowing practice</h3><div className="mt-2 flex flex-wrap gap-2">{result.shadowing_chunks.map((chunk, index) => <span key={index} className="rounded-full bg-white px-3 py-2 text-sm font-semibold">{chunk}</span>)}</div></div>}
+          {!!result.priority_improvements?.length && <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-4"><b>Focus next:</b><List items={result.priority_improvements} /></div>}
           <p className="text-xs text-slate-500">*Pronunciation is a provisional AI estimate, not an official Cambridge result.</p>
         </div>}
       </section>
@@ -135,3 +148,10 @@ export default function DirectionsSpeaking() {
 function Feedback({ title, text }: { title: string; text?: string }) {
   return <div className="rounded-2xl bg-white p-4 shadow-sm"><h3 className="font-bold text-cyan-800">{title}</h3><p className="mt-1 text-sm text-slate-700">{text || "—"}</p></div>;
 }
+
+function DetailedFeedback({ title, text, good, improve }: { title: string; text?: string; good?: string[]; improve?: string[] }) {
+  return <div className="rounded-2xl bg-white p-4 shadow-sm"><h3 className="font-bold text-cyan-800">{title}</h3><p className="mt-1 text-sm text-slate-700">{text || "—"}</p>{!!good?.length && <div className="mt-3"><b className="text-sm text-emerald-700">What you did well</b><List items={good} /></div>}{!!improve?.length && <div className="mt-3"><b className="text-sm text-amber-700">Improve / practise</b><List items={improve} /></div>}</div>;
+}
+
+function List({ items }: { items?: string[] }) { return <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">{items?.map((item, index) => <li key={index}>{item}</li>)}</ul>; }
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-xl bg-white p-3 text-center shadow-sm"><div className="font-extrabold text-cyan-700">{value}</div><div className="text-xs text-slate-500">{label}</div></div>; }
