@@ -141,8 +141,12 @@ export default function Home() {
   // WRITING
   const [writingInput, setWritingInput] = useState("");
   const [writingLoading, setWritingLoading] = useState(false);
+  const [writingUploadLoading, setWritingUploadLoading] = useState(false);
+  const [writingFileName, setWritingFileName] = useState("");
+  const [writingImagePreview, setWritingImagePreview] = useState("");
   const [writingResult, setWritingResult] =
     useState<WritingResult | null>(null);
+  const writingFileRef = useRef<HTMLInputElement | null>(null);
 
   // SPEAKING
   const [recording, setRecording] = useState(false);
@@ -278,6 +282,50 @@ export default function Home() {
     } finally {
       setWritingLoading(false);
     }
+  }
+
+  async function recogniseWritingFile(file?: File) {
+    if (!file || writingUploadLoading) return;
+
+    const allowedExtensions = ["jpg", "jpeg", "png", "webp", "pdf", "docx", "txt"];
+    const extension = file.name.toLowerCase().split(".").pop() || "";
+    if (!allowedExtensions.includes(extension)) {
+      setError("Chỉ hỗ trợ JPG, PNG, WebP, PDF, DOCX và TXT.");
+      if (writingFileRef.current) writingFileRef.current.value = "";
+      return;
+    }
+
+    setWritingUploadLoading(true);
+    setWritingResult(null);
+    setWritingFileName(file.name);
+    setError("");
+
+    if (file.type.startsWith("image/")) {
+      setWritingImagePreview(URL.createObjectURL(file));
+    } else {
+      setWritingImagePreview("");
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/writing-upload", { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Không thể nhận diện file bài viết.");
+      setWritingInput(data.text || "");
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Không thể nhận diện file bài viết.");
+    } finally {
+      setWritingUploadLoading(false);
+      if (writingFileRef.current) writingFileRef.current.value = "";
+    }
+  }
+
+  function clearWritingFile() {
+    if (writingImagePreview) URL.revokeObjectURL(writingImagePreview);
+    setWritingImagePreview("");
+    setWritingFileName("");
   }
 
   // =========================================================
@@ -562,16 +610,58 @@ export default function Home() {
               </h2>
 
               <p className="mt-2 text-slate-500">
-                Dán bài Writing để AI đánh giá theo tiêu chí
-                Cambridge A1–B1, sửa lỗi và đề xuất cách cải thiện.
+                Nhập văn bản hoặc tải ảnh chữ viết tay/file đánh máy để AI nhận diện,
+                sau đó đánh giá theo tiêu chí Cambridge A1–B1.
               </p>
             </div>
 
             <div className="rounded-3xl border bg-white p-6">
+              <div className="mb-5 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-slate-900">📤 Tải bài viết lên</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Ảnh chữ viết tay: JPG, PNG, WebP (tối đa 4 MB) • File đánh máy: PDF, DOCX, TXT (tối đa 10 MB)
+                    </p>
+                  </div>
+                  <label className={`cursor-pointer rounded-2xl px-5 py-3 font-semibold text-white ${writingUploadLoading ? "bg-slate-400" : "bg-blue-600 hover:bg-blue-700"}`}>
+                    {writingUploadLoading ? "Đang nhận diện..." : "Chọn ảnh hoặc file"}
+                    <input
+                      ref={writingFileRef}
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf,.docx,.txt,image/jpeg,image/png,image/webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                      disabled={writingUploadLoading}
+                      onChange={(event) => recogniseWritingFile(event.target.files?.[0])}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+
+                {writingFileName && (
+                  <div className="mt-4 rounded-xl bg-white p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-semibold">✓ {writingFileName}</p>
+                      <button type="button" onClick={clearWritingFile} className="text-sm font-semibold text-red-600 hover:underline">
+                        Xoá file
+                      </button>
+                    </div>
+                    {writingImagePreview && (
+                      <img src={writingImagePreview} alt="Bài viết được tải lên" className="mt-3 max-h-72 w-full rounded-xl border bg-white object-contain" />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {writingFileName && !writingUploadLoading && (
+                <p className="mb-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Hãy kiểm tra và sửa phần văn bản AI nhận diện bên dưới trước khi chấm bài.
+                </p>
+              )}
+
               <textarea
                 value={writingInput}
                 onChange={(e) => setWritingInput(e.target.value)}
-                placeholder="Paste your A1–B1 English writing here..."
+                placeholder="Nhập bài Writing hoặc tải ảnh/file để AI nhận diện nội dung..."
                 rows={14}
                 className="w-full resize-y rounded-2xl border p-4 outline-none focus:border-slate-400"
               />
