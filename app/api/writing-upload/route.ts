@@ -1,6 +1,6 @@
 import Groq from "groq-sdk";
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 
 export const runtime = "nodejs";
 
@@ -80,13 +80,8 @@ async function readDocument(file: File) {
   }
 
   if (ext === "pdf") {
-    const parser = new PDFParse({ data: buffer });
-    try {
-      const result = await parser.getText();
-      return cleanText(result.text);
-    } finally {
-      await parser.destroy();
-    }
+    const result = await pdfParse(buffer);
+    return cleanText(result.text);
   }
 
   throw new Error("Chỉ hỗ trợ JPG, PNG, WebP, PDF, DOCX và TXT.");

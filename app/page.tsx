@@ -310,7 +310,13 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", file);
       const response = await fetch("/api/writing-upload", { method: "POST", body: formData });
-      const data = await response.json();
+      const rawResponse = await response.text();
+      let data: { text?: string; error?: string } = {};
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error("Máy chủ không trả về kết quả hợp lệ. Hãy thử lại hoặc chọn ảnh/file nhỏ hơn.");
+      }
       if (!response.ok) throw new Error(data.error || "Không thể nhận diện file bài viết.");
       setWritingInput(data.text || "");
     } catch (err) {
